@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:orientation="vertical"
+	android:elevation="16dp"
+	android:background="@drawable/alert_rounded_border">
+
+
+	<TextView android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="Title :" />
+	<EditText android:id="@+id/Popup_Edit_Title_TV"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginBottom="8dp"
+		android:paddingStart="10dp"
+		android:paddingEnd="10dp"
+		android:paddingBottom="10dp"
+		android:paddingTop="0dp" />
+
+	<TextView android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="Title :" />
+	<EditText android:id="@+id/Popup_Edit_Text_TV"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:gravity="start|top"
+		android:inputType="textMultiLine"
+		android:layout_marginBottom="8dp"
+		android:maxLines="5"
+		android:paddingStart="10dp"
+		android:paddingEnd="10dp"
+		android:paddingBottom="10dp"
+		android:paddingTop="0dp" />
+
+	<LinearLayout android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="horizontal">
+		<Button android:id="@+id/Popup_Edit_Delete_Button"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:backgroundTint="@android:color/holo_red_dark"
+			android:paddingVertical="12dp"
+			android:text="Delete" />
+		<Button android:id="@+id/Popup_Edit_Edit_Button"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:backgroundTint="@color/colorPrimary"
+			android:paddingVertical="12dp"
+			android:text="Edit" />
+	</LinearLayout>
+</LinearLayout>
