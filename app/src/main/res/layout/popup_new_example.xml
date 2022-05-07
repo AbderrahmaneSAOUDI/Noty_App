@@ -32,10 +32,21 @@
 		android:paddingEnd="10dp"
 		android:paddingBottom="10dp"
 		android:paddingTop="0dp" />
-	<Button android:id="@+id/Popup_New_Send_Button"
-		android:layout_width="match_parent"
+	<LinearLayout android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:paddingVertical="12dp"
-		android:backgroundTint="@color/colorPrimary"
-		android:text="Send to Firebase" />
+		android:orientation="horizontal">
+		<Button android:id="@+id/Popup_New_Send_Button"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:paddingVertical="12dp"
+			android:backgroundTint="@color/colorPrimary"
+			android:text="Add new note" />
+		<Button android:id="@+id/Popup_New_Cancel_Button"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:paddingVertical="12dp"
+			android:text="Cancel" />
+	</LinearLayout>
 </LinearLayout>

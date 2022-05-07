@@ -23,6 +23,8 @@ public class CustomListAdapter extends RecyclerView.Adapter<CustomListAdapter.Cu
 	protected Context context;
 	private String referenceString;
 	private final FirebaseDatabase database = FirebaseDatabase.getInstance ();
+	private AlertDialog edit_dialog;
+	private View edit_dialogView;
 
 
 	// * Constructors :
@@ -60,22 +62,24 @@ public class CustomListAdapter extends RecyclerView.Adapter<CustomListAdapter.Cu
 
 		holder.itemView.setOnLongClickListener (view -> {
 			AlertDialog.Builder alert = new AlertDialog.Builder (context);
-			View dialogView = View.inflate (context, R.layout.popup_edit_example, null);
-			final AlertDialog dialog = alert.setView (dialogView).create ();
-			dialog.getWindow ().setBackgroundDrawable (new ColorDrawable (Color.TRANSPARENT));
-			dialog.show ();
+			edit_dialogView = View.inflate (context, R.layout.popup_edit_example, null);
+			edit_dialog = alert.setView (edit_dialogView).create ();
+			edit_dialog.getWindow ().setBackgroundDrawable (new ColorDrawable (Color.TRANSPARENT));
+			edit_dialog.show ();
 
-			EditText title = dialogView.findViewById (R.id.Popup_Edit_Title_TV);
-			EditText text = dialogView.findViewById (R.id.Popup_Edit_Text_TV);
+			EditText title = edit_dialogView.findViewById (R.id.Popup_Edit_Title_TV);
+			EditText text = edit_dialogView.findViewById (R.id.Popup_Edit_Text_TV);
 			title.setText (holder.title.getText ());
 			text.setText (holder.text.getText ());
-			dialogView.findViewById (R.id.Popup_Edit_Edit_Button).setOnClickListener (view1 -> {
+
+			edit_dialogView.findViewById (R.id.Popup_Edit_Edit_Button).setOnClickListener (view1 -> {
 				database.getReference (referenceString).child (list.get (position).getId ()).setValue (new Note (list.get (position).getId (), title.getText ().toString (), text.getText ().toString ()));
-				dialog.dismiss ();
+				edit_dialog.dismiss ();
 			});
-			dialogView.findViewById (R.id.Popup_Edit_Delete_Button).setOnClickListener (view1 -> {
+
+			edit_dialogView.findViewById (R.id.Popup_Edit_Delete_Button).setOnClickListener (view1 -> {
 				database.getReference (referenceString).child (list.get (position).getId ()).removeValue ();
-				dialog.dismiss ();
+				edit_dialog.dismiss ();
 			});
 
 			return false;
