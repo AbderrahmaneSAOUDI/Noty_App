@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -35,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 	private AlertDialog dialog;
 
 	// * Override OnCreate :
-	@SuppressLint ("InflateParams")
+	@SuppressLint ({"InflateParams", "NonConstantResourceId"})
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
 		// ? Create MainActivity View :
@@ -51,18 +53,55 @@ public class MainActivity extends AppCompatActivity {
 
 		// ? Set onClickListener for [Register/AlertDialog] -> [Continue/Button] :
 		dialogView.findViewById (R.id.Popup_Register_Continue_Button).setOnClickListener (view -> {
-			TextView username = dialogView.findViewById (R.id.Popup_Register_Username),
+			TextView email_TV = dialogView.findViewById (R.id.Popup_Register_Email),
 					password_TV = dialogView.findViewById (R.id.Popup_Register_Password);
 			RadioGroup register_RadioGroup = dialogView.findViewById (R.id.Popup_Register_RadioGroup);
-			Toast.makeText (MainActivity.this, register_RadioGroup.getCheckedRadioButtonId () + "", Toast.LENGTH_SHORT).show ();
-			dialog.dismiss ();
+			FirebaseAuth auth = FirebaseAuth.getInstance ();
+
+			// ? Check for empty fields and chosen RadioButton :
+			if (email_TV.getText ().equals (""))
+				Toast.makeText (this, "Please enter your Email address.", Toast.LENGTH_SHORT).show ();
+			else if (password_TV.getText ().toString ().length () < 8)
+				Toast.makeText (this, "Password must be at least 8 characters.", Toast.LENGTH_SHORT).show ();
+			else
+				switch (register_RadioGroup.getCheckedRadioButtonId ()) {
+					case R.id.Popup_Register_RadioGroup_Register:
+						auth.createUserWithEmailAndPassword (email_TV.getText ().toString (), password_TV.getText ().toString ()).addOnCompleteListener (task -> {
+							if (task.isSuccessful ()) {
+								Toast.makeText (this, "REGISTER Success", Toast.LENGTH_SHORT).show ();
+								dialog.dismiss ();
+							} else {
+								Toast.makeText (this, task.getException ().toString (), Toast.LENGTH_LONG).show ();
+								Log.e ("ERROR", task.getException ().toString ());
+							}
+						});
+						dialog.dismiss ();
+						break;
+
+					case R.id.Popup_Register_RadioGroup_Login:
+						Toast.makeText (this, "Login", Toast.LENGTH_SHORT).show ();
+						auth.signInWithEmailAndPassword (email_TV.getText ().toString (), password_TV.getText ().toString ()).addOnCompleteListener (task -> {
+							if (task.isSuccessful ()) {
+								Toast.makeText (this, "LOGIN Success", Toast.LENGTH_SHORT).show ();
+								dialog.dismiss ();
+							} else {
+								Toast.makeText (this, task.getException ().toString (), Toast.LENGTH_LONG).show ();
+								Log.e ("ERROR", task.getException ().toString ());
+							}
+						});
+						break;
+
+					default:
+						Toast.makeText (this, "Please choose [Register / Login]", Toast.LENGTH_SHORT).show ();
+						break;
+				}
 		});
 
 		// ? Initialize the root of Firebase Database :
 		reference = database.getReference ("Notes");
 
-		// ? Set onClickListener for [floating/Button] :
-		findViewById (R.id.X_floatingActionButton).setOnClickListener (view -> {
+		// ? Set onClickListener for [New Note/FloatingActionButton] :
+		findViewById (R.id.New_floatingABtn).setOnClickListener (view -> {
 			// ? Create and Show [Add new note/AlertDialog] :
 			alert = new AlertDialog.Builder (MainActivity.this);
 			dialogView = getLayoutInflater ().inflate (R.layout.popup_new_example, null);
@@ -75,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
 				TextView title = dialogView.findViewById (R.id.Popup_New_Title),
 						text = dialogView.findViewById (R.id.Popup_New_Text);
 				// ! add [new note/Note] to Firebase Database just if fields are not empty :
-				if (!title.getText ().toString ().isEmpty () && !text.getText ().toString ().isEmpty ()) {
+				if (! title.getText ().toString ().isEmpty () && ! text.getText ().toString ().isEmpty ()) {
 					String id = reference.push ().getKey ();
 					Note note = new Note (id, title.getText ().toString (), text.getText ().toString ());
 					reference.child (id).setValue (note);
@@ -84,6 +123,11 @@ public class MainActivity extends AppCompatActivity {
 				} else
 					Toast.makeText (MainActivity.this, "setOnClickListener ERROR", Toast.LENGTH_SHORT).show ();
 			});
+		});
+
+		// ? Set onClickListener for [Logout/FloatingActionButton] :
+		findViewById (R.id.Logout_floatingABtn).setOnClickListener (view -> {
+
 		});
 
 /*
@@ -128,5 +172,10 @@ public class MainActivity extends AppCompatActivity {
 				Toast.makeText (MainActivity.this, "addValueEventListener ERROR", Toast.LENGTH_SHORT).show ();
 			}
 		});
+
+		// ? disable [login-register dialog/AlertDialog] if user already registered or logged in :
+		FirebaseAuth auth = FirebaseAuth.getInstance ();
+		if (auth.getCurrentUser () == null) dialog.show ();
+		else dialog.dismiss ();
 	}
 }
