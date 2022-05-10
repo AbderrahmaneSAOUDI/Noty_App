@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
@@ -20,11 +21,12 @@ import java.util.List;
 public class CustomListAdapter extends RecyclerView.Adapter<CustomListAdapter.CustomViewHolder> {
 	// * Local Variables :
 	private final List<Note> list;
+	private final FirebaseDatabase database = FirebaseDatabase.getInstance ();
 	protected Context context;
 	private String referenceString;
-	private final FirebaseDatabase database = FirebaseDatabase.getInstance ();
 	private AlertDialog edit_dialog;
 	private View edit_dialogView;
+	private int index;
 
 
 	// * Constructors :
@@ -39,10 +41,13 @@ public class CustomListAdapter extends RecyclerView.Adapter<CustomListAdapter.Cu
 		return referenceString;
 	}
 
-
 	// * Setters :
 	public void setReferenceString (String _reference) {
 		this.referenceString = _reference;
+	}
+
+	public int getIndex () {
+		return index;
 	}
 
 	// * Methods :
@@ -58,7 +63,10 @@ public class CustomListAdapter extends RecyclerView.Adapter<CustomListAdapter.Cu
 		holder.text.setText (list.get (position).getText ());
 		holder.date.setText (list.get (position).getDate ());
 
-		holder.itemView.setOnClickListener (view -> holder.text.setVisibility (View.VISIBLE));
+		holder.itemView.setOnClickListener (view -> {
+			index = holder.getAdapterPosition ();
+			holder.text.setVisibility (View.VISIBLE);
+		});
 
 		holder.itemView.setOnLongClickListener (view -> {
 			AlertDialog.Builder alert = new AlertDialog.Builder (context);
@@ -69,11 +77,11 @@ public class CustomListAdapter extends RecyclerView.Adapter<CustomListAdapter.Cu
 
 			EditText title = edit_dialogView.findViewById (R.id.Popup_Edit_Title_TV);
 			EditText text = edit_dialogView.findViewById (R.id.Popup_Edit_Text_TV);
-			title.setText (holder.title.getText ());
+			title.setText ((holder.title.getText ().equals ("<No Title>")) ? "" : holder.title.getText ());
 			text.setText (holder.text.getText ());
 
 			edit_dialogView.findViewById (R.id.Popup_Edit_Edit_Button).setOnClickListener (view1 -> {
-				database.getReference (referenceString).child (list.get (position).getId ()).setValue (new Note (list.get (position).getId (), title.getText ().toString (), text.getText ().toString ()));
+				database.getReference (referenceString).child (list.get (position).getId ()).setValue (new Note (list.get (position).getId (), FirebaseAuth.getInstance ().getCurrentUser ().getUid (), title.getText ().toString (), text.getText ().toString ()));
 				edit_dialog.dismiss ();
 			});
 

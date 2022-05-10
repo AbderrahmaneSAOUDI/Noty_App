@@ -33,8 +33,8 @@ public class MainActivity extends AppCompatActivity {
 	private RecyclerView recyclerView;
 	private DatabaseReference reference;
 	private AlertDialog.Builder alert;
-	private AlertDialog new_dialog, edit_dialog, register_dialog;
-	private View new_dialogView, edit_dialogView, register_dialogView;
+	private AlertDialog new_dialog, register_dialog;
+	private View new_dialogView, register_dialogView;
 
 	// * Override OnCreate :
 	@SuppressLint ({"InflateParams", "NonConstantResourceId"})
@@ -73,7 +73,12 @@ public class MainActivity extends AppCompatActivity {
 						auth.createUserWithEmailAndPassword (email_TV.getText ().toString (), password_TV.getText ().toString ()).addOnCompleteListener (task -> {
 							if (task.isSuccessful ()) {
 								Toast.makeText (this, "REGISTER Success", Toast.LENGTH_SHORT).show ();
-								register_dialog.dismiss ();
+								auth.getCurrentUser ().sendEmailVerification ().addOnCompleteListener (task1 -> {
+									if (task1.isSuccessful ())
+										Toast.makeText (this, "Verification link sent to your Email. Please send it before loggig in", Toast.LENGTH_SHORT).show ();
+								});
+								if (auth.getCurrentUser ().isEmailVerified ())
+									register_dialog.dismiss ();
 							} else {
 								Toast.makeText (this, task.getException ().toString (), Toast.LENGTH_LONG).show ();
 								Log.e ("ERROR", task.getException ().toString ());
@@ -84,13 +89,16 @@ public class MainActivity extends AppCompatActivity {
 					case R.id.Popup_Register_RadioGroup_Login:
 						Toast.makeText (this, "Login", Toast.LENGTH_SHORT).show ();
 						auth.signInWithEmailAndPassword (email_TV.getText ().toString (), password_TV.getText ().toString ()).addOnCompleteListener (task -> {
-							if (task.isSuccessful ()) {
-								Toast.makeText (this, "LOGIN Success", Toast.LENGTH_SHORT).show ();
-								register_dialog.dismiss ();
-							} else {
-								Toast.makeText (this, task.getException ().toString (), Toast.LENGTH_LONG).show ();
-								Log.e ("ERROR", task.getException ().toString ());
-							}
+							if (auth.getCurrentUser ().isEmailVerified ())
+								if (task.isSuccessful ()) {
+									Toast.makeText (this, "LOGIN Success", Toast.LENGTH_SHORT).show ();
+									register_dialog.dismiss ();
+								} else {
+									Toast.makeText (this, task.getException ().toString (), Toast.LENGTH_LONG).show ();
+									Log.e ("ERROR", task.getException ().toString ());
+								}
+							else
+								Toast.makeText (this, "Please Verify your Email Address.", Toast.LENGTH_SHORT).show ();
 						});
 						break;
 					// ! <NULL/RadioButton> : Show Toast error message :
@@ -116,10 +124,17 @@ public class MainActivity extends AppCompatActivity {
 				// ! add [new note/Note] to Firebase Database just if fields are not empty :
 				if (! title.getText ().toString ().isEmpty () && ! text.getText ().toString ().isEmpty ()) {
 					String id = reference.push ().getKey ();
-					Note note = new Note (id, title.getText ().toString (), text.getText ().toString ());
+					Note note = new Note (id, FirebaseAuth.getInstance ().getCurrentUser ().getUid (), title.getText ().toString (), text.getText ().toString ());
 					reference.child (id).setValue (note);
 					// ? Hide [Add new note/AlertDialog] :
 					new_dialog.dismiss ();
+				} else if (title.getText ().toString ().isEmpty ()) {
+					String id = reference.push ().getKey ();
+					Note note = new Note (id, FirebaseAuth.getInstance ().getCurrentUser ().getUid (), "<No Title>", text.getText ().toString ());
+					reference.child (id).setValue (note);
+					// ? Hide [Add new note/AlertDialog] :
+					new_dialog.dismiss ();
+					Toast.makeText (this, "Title is set by default to \"<No Title>\"", Toast.LENGTH_SHORT).show ();
 				} else
 					Toast.makeText (MainActivity.this, "setOnClickListener ERROR", Toast.LENGTH_SHORT).show ();
 			});
@@ -145,7 +160,8 @@ public class MainActivity extends AppCompatActivity {
 			public void onDataChange (@NonNull DataSnapshot snapshot) {
 				mList.clear ();
 				for (DataSnapshot data : snapshot.getChildren ())
-					mList.add (0, data.getValue (Note.class));
+					if (data.getValue (Note.class).getUserID ().equals (FirebaseAuth.getInstance ().getUid ()))
+						mList.add (0, data.getValue (Note.class));
 				recyclerView = findViewById (R.id.X_recylerView);
 				CustomListAdapter adapter = new CustomListAdapter (MainActivity.this, mList);
 				adapter.setReferenceString ("Notes");
@@ -161,7 +177,10 @@ public class MainActivity extends AppCompatActivity {
 
 		// ! disable [login-register dialog/AlertDialog] if user already registered or logged in :
 		FirebaseAuth auth = FirebaseAuth.getInstance ();
-		if (auth.getCurrentUser () == null) register_dialog.show ();
+		if (auth.getCurrentUser () == null || ! auth.getCurrentUser ().isEmailVerified ())
+			register_dialog.show ();
 		else register_dialog.dismiss ();
 	}
+
+//	protected static void set
 }
