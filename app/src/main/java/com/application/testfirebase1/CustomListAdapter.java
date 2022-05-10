@@ -35,7 +35,6 @@ public class CustomListAdapter extends RecyclerView.Adapter<CustomListAdapter.Cu
 		this.list = _list;
 	}
 
-
 	// * Getters :
 	public String getReferenceString () {
 		return referenceString;

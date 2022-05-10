@@ -3,15 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Project_Files/TestFirebase1/app/src/main/res/drawable/alert_rounded_berder.xml" value="0.2375" />
-        <entry key="..\:/Project_Files/TestFirebase1/app/src/main/res/layout/activity_main.xml" value="0.225" />
-        <entry key="..\:/Project_Files/TestFirebase1/app/src/main/res/layout/edit_popup_example.xml" value="0.20208333333333334" />
-        <entry key="..\:/Project_Files/TestFirebase1/app/src/main/res/layout/list_example.xml" value="0.381025641025641" />
-        <entry key="..\:/Project_Files/TestFirebase1/app/src/main/res/layout/new_popup_example.xml" value="0.1984375" />
-        <entry key="..\:/Project_Files/TestFirebase1/app/src/main/res/layout/popup_edit_example.xml" value="0.225" />
-        <entry key="..\:/Project_Files/TestFirebase1/app/src/main/res/layout/popup_example.xml" value="0.38697916666666665" />
-        <entry key="..\:/Project_Files/TestFirebase1/app/src/main/res/layout/popup_new_example.xml" value="0.1638888888888889" />
-        <entry key="..\:/Project_Files/TestFirebase1/app/src/main/res/layout/popup_register_example.xml" value="0.22" />
+        <entry key="..\:/Project_Files/TestFirebase1/app/src/main/res/layout/popup_edit_example.xml" value="0.14351851851851852" />
       </map>
     </option>
   </component>
