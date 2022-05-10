@@ -35,19 +35,12 @@ public class CustomListAdapter extends RecyclerView.Adapter<CustomListAdapter.Cu
 		this.list = _list;
 	}
 
-	// * Getters :
-	public String getReferenceString () {
-		return referenceString;
-	}
 
 	// * Setters :
 	public void setReferenceString (String _reference) {
 		this.referenceString = _reference;
 	}
 
-	public int getIndex () {
-		return index;
-	}
 
 	// * Methods :
 	@NonNull
@@ -63,8 +56,7 @@ public class CustomListAdapter extends RecyclerView.Adapter<CustomListAdapter.Cu
 		holder.date.setText (list.get (position).getDate ());
 
 		holder.itemView.setOnClickListener (view -> {
-			index = holder.getAdapterPosition ();
-			holder.text.setVisibility (View.VISIBLE);
+			holder.text.setVisibility ((holder.text.getVisibility () == View.GONE) ? View.VISIBLE : View.GONE);
 		});
 
 		holder.itemView.setOnLongClickListener (view -> {

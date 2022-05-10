@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
 	// * Local Variables :
 	private final List<Note> mList = new ArrayList<> ();
 	private final FirebaseDatabase database = FirebaseDatabase.getInstance ();
+	FloatingActionButton add_FloatingButton, lougout_FloatingButton;
 	private RecyclerView recyclerView;
 	private DatabaseReference reference;
 	private AlertDialog.Builder alert;
@@ -47,11 +49,18 @@ public class MainActivity extends AppCompatActivity {
 		// ? Initialize Variables :
 		reference = database.getReference ("Notes");
 		alert = new AlertDialog.Builder (MainActivity.this);
+		recyclerView = findViewById (R.id.X_recylerView);
+		add_FloatingButton = findViewById (R.id.New_floatingABtn);
+		lougout_FloatingButton = findViewById (R.id.Logout_floatingABtn);
 
 		// ? Show the Registration/Login Dialog :
 		register_dialogView = getLayoutInflater ().inflate (R.layout.popup_register_example, null);
 		register_dialog = alert.setView (register_dialogView).setCancelable (false).create ();
 		register_dialog.getWindow ().setBackgroundDrawable (new ColorDrawable (Color.TRANSPARENT));
+
+		recyclerView.setVisibility (View.GONE);
+		add_FloatingButton.setVisibility (View.GONE);
+		lougout_FloatingButton.setVisibility (View.GONE);
 		register_dialog.show ();
 
 		// ? Set onClickListener for [Register-Login/AlertDialog] -> [Continue/Button] :
@@ -72,31 +81,31 @@ public class MainActivity extends AppCompatActivity {
 					case R.id.Popup_Register_RadioGroup_Register:
 						auth.createUserWithEmailAndPassword (email_TV.getText ().toString (), password_TV.getText ().toString ()).addOnCompleteListener (task -> {
 							if (task.isSuccessful ()) {
-								Toast.makeText (this, "REGISTER Success", Toast.LENGTH_SHORT).show ();
 								auth.getCurrentUser ().sendEmailVerification ().addOnCompleteListener (task1 -> {
 									if (task1.isSuccessful ())
 										Toast.makeText (this, "Verification link sent to your Email. Please send it before loggig in", Toast.LENGTH_SHORT).show ();
 								});
-								if (auth.getCurrentUser ().isEmailVerified ())
+								if (auth.getCurrentUser ().isEmailVerified ()) {
+									recyclerView.setVisibility (View.VISIBLE);
+									add_FloatingButton.setVisibility (View.VISIBLE);
+									lougout_FloatingButton.setVisibility (View.VISIBLE);
 									register_dialog.dismiss ();
-							} else {
-								Toast.makeText (this, task.getException ().toString (), Toast.LENGTH_LONG).show ();
+								}
+							} else
 								Log.e ("ERROR", task.getException ().toString ());
-							}
 						});
 						break;
 					// ! <Login/RadioButton> : login to an existing account and return "LOGIN Success" if done, "ERROR" else then hide [Register-Login/AlertDialog] :
 					case R.id.Popup_Register_RadioGroup_Login:
-						Toast.makeText (this, "Login", Toast.LENGTH_SHORT).show ();
 						auth.signInWithEmailAndPassword (email_TV.getText ().toString (), password_TV.getText ().toString ()).addOnCompleteListener (task -> {
 							if (auth.getCurrentUser ().isEmailVerified ())
 								if (task.isSuccessful ()) {
-									Toast.makeText (this, "LOGIN Success", Toast.LENGTH_SHORT).show ();
+									recyclerView.setVisibility (View.VISIBLE);
+									add_FloatingButton.setVisibility (View.VISIBLE);
+									lougout_FloatingButton.setVisibility (View.VISIBLE);
 									register_dialog.dismiss ();
-								} else {
-									Toast.makeText (this, task.getException ().toString (), Toast.LENGTH_LONG).show ();
+								} else
 									Log.e ("ERROR", task.getException ().toString ());
-								}
 							else
 								Toast.makeText (this, "Please Verify your Email Address.", Toast.LENGTH_SHORT).show ();
 						});
@@ -109,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
 		});
 
 		// ? Set onClickListener for [New Note/FloatingActionButton] :
-		findViewById (R.id.New_floatingABtn).setOnClickListener (view -> {
+		add_FloatingButton.setOnClickListener (view -> {
 			// ? Create and Show [Add new note/AlertDialog] :
 			new_dialogView = getLayoutInflater ().inflate (R.layout.popup_new_example, null);
 			new_dialog = alert.setView (new_dialogView).create ();
@@ -136,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
 					new_dialog.dismiss ();
 					Toast.makeText (this, "Title is set by default to \"<No Title>\"", Toast.LENGTH_SHORT).show ();
 				} else
-					Toast.makeText (MainActivity.this, "setOnClickListener ERROR", Toast.LENGTH_SHORT).show ();
+					Log.e ("ERROR", "setOnClickListener ERROR");
 			});
 
 			// ? Set onClickListener for [Add new note/AlertDialog] -> [Cancel/Button] :
@@ -144,8 +153,10 @@ public class MainActivity extends AppCompatActivity {
 		});
 
 		// ? Set onClickListener for [Logout/FloatingActionButton] :
-		findViewById (R.id.Logout_floatingABtn).setOnClickListener (view -> {
-			FirebaseAuth.getInstance ().signOut ();
+		lougout_FloatingButton.setOnClickListener (view -> {
+			recyclerView.setVisibility (View.GONE);
+			add_FloatingButton.setVisibility (View.GONE);
+			lougout_FloatingButton.setVisibility (View.GONE);
 			register_dialog.show ();
 		});
 	}
@@ -162,7 +173,6 @@ public class MainActivity extends AppCompatActivity {
 				for (DataSnapshot data : snapshot.getChildren ())
 					if (data.getValue (Note.class).getUserID ().equals (FirebaseAuth.getInstance ().getUid ()))
 						mList.add (0, data.getValue (Note.class));
-				recyclerView = findViewById (R.id.X_recylerView);
 				CustomListAdapter adapter = new CustomListAdapter (MainActivity.this, mList);
 				adapter.setReferenceString ("Notes");
 				recyclerView.setAdapter (adapter);
@@ -171,15 +181,24 @@ public class MainActivity extends AppCompatActivity {
 
 			@Override
 			public void onCancelled (@NonNull DatabaseError error) {
-				Toast.makeText (MainActivity.this, "addValueEventListener ERROR", Toast.LENGTH_SHORT).show ();
+				Log.e ("ERROR", "addValueEventListener ERROR");
 			}
 		});
 
 		// ! disable [login-register dialog/AlertDialog] if user already registered or logged in :
 		FirebaseAuth auth = FirebaseAuth.getInstance ();
-		if (auth.getCurrentUser () == null || ! auth.getCurrentUser ().isEmailVerified ())
+		if (auth.getCurrentUser () == null || ! auth.getCurrentUser ().isEmailVerified ()) {
+			recyclerView.setVisibility (View.GONE);
+			add_FloatingButton.setVisibility (View.GONE);
+			lougout_FloatingButton.setVisibility (View.GONE);
 			register_dialog.show ();
-		else register_dialog.dismiss ();
+
+		} else {
+			recyclerView.setVisibility (View.VISIBLE);
+			add_FloatingButton.setVisibility (View.VISIBLE);
+			lougout_FloatingButton.setVisibility (View.VISIBLE);
+			register_dialog.dismiss ();
+		}
 	}
 
 //	protected static void set
